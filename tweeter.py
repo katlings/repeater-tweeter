@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import json
 
 from apiclient.discovery import build
@@ -32,8 +34,18 @@ def tweet_about_song_repeat():
     client = authenticate()
     song, artists, plays = look_for_repeats()
 
-    if plays > 10:
+    with open('last_song.txt') as f:
+        last_song = f.read().strip()
+
+    if plays >= 10 and last_song != song:
         url = youtube_search_for_song(song, artists)
-        message = f"""Let's play "what song is stuck in Kat's head?"\n\nIt's {song} by {artist}! {url}"""
+        message = f"""Let's play "what song is stuck in Kat's head?"\n\nIt's {song} by {artists}! {url}"""
 
         client.create_tweet(text=message)
+
+        with open('last_song.txt', 'w') as f:
+            f.write(song)
+
+
+if __name__ == '__main__':
+    tweet_about_song_repeat()

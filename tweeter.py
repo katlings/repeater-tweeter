@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 
 import json
+import os
+import random
 
 from apiclient.discovery import build
 import tweepy
 
 from play_detect import look_for_repeats
 
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+
 def authenticate():
-    with open('creds.json') as f:
+    with open(os.path.join(dir_path, 'creds.json')) as f:
         creds = json.loads(f.read())
 
     return tweepy.Client(
@@ -20,7 +26,7 @@ def authenticate():
 
 
 def youtube_search_for_song(song, artist):
-    with open('creds.json') as f:
+    with open(os.path.join(dir_path, 'creds.json')) as f:
         creds = json.loads(f.read())
     api_key = creds['yt_api_key']
 
@@ -32,18 +38,24 @@ def youtube_search_for_song(song, artist):
 
 def tweet_about_song_repeat():
     client = authenticate()
-    song, artists, plays = look_for_repeats()
+    song, artists, plays, delta = look_for_repeats()
 
-    with open('last_song.txt') as f:
+    with open(os.path.join(dir_path, 'last_song.txt')) as f:
         last_song = f.read().strip()
 
-    if plays >= 10 and last_song != song:
+    if last_song != song and plays >= 5 and delta >= 3:
+        rfactor = random.random()
+        threshold = ((plays - 4) * 0.1)**2
+        if rfactor > threshold:
+            print(f"Not tweeting; random {rfactor} > {threshold} says not now!")
+            return
+        print(f"Tweeting; random {rfactor} < {threshold} says now!")
         url = youtube_search_for_song(song, artists)
         message = f"""Let's play "what song is stuck in Kat's head?"\n\nIt's {song} by {artists}! {url}"""
 
         client.create_tweet(text=message)
 
-        with open('last_song.txt', 'w') as f:
+        with open(os.path.join(dir_path, 'last_song.txt'), 'w') as f:
             f.write(song)
 
 

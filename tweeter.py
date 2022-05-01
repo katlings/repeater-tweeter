@@ -2,7 +2,6 @@
 
 import json
 import os
-import random
 
 from apiclient.discovery import build
 import tweepy
@@ -43,13 +42,8 @@ def tweet_about_song_repeat():
     with open(os.path.join(dir_path, 'last_song.txt')) as f:
         last_song = f.read().strip()
 
-    if last_song != song and plays >= 5 and delta >= 3:
-        rfactor = random.random()
-        threshold = ((plays - 4) * 0.1)**2
-        if rfactor > threshold:
-            print(f"Not tweeting; random {rfactor} > {threshold} says not now!")
-            return
-        print(f"Tweeting; random {rfactor} < {threshold} says now!")
+    if last_song != song and plays >= 5 and delta >= 4:
+        print(f"Tweeting!")
         url = youtube_search_for_song(song, artists)
         message = f"""Let's play "what song is stuck in Kat's head?"\n\nIt's {song} by {artists}! {url}"""
 
